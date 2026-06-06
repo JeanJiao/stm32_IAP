@@ -29,6 +29,10 @@
 
 extern __IO uint32_t FlashProtection;
 
+#if DEBUG_LCD
+extern int bDisplayUpdate;
+#endif
+
 void FlashProtectCheck(void);
 int FLASH_DisableWriteProtectionPages(void);
 int FlashDownload(u8 *Buf, u32 BufLength);

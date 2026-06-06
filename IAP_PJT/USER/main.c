@@ -6,6 +6,7 @@
 #include "core_cm3.h"
 #include "common.h"
 #include "config.h"
+#include "lcd.h"
 
 
 /************************************************
@@ -21,6 +22,7 @@
 
 
 
+#if FLASH_DOWNLOAD
 typedef  void (*pFunction)(void);
 
 pFunction Jump_To_Application;
@@ -90,6 +92,7 @@ uint8_t WriteBuf_1024[] =
 	0x88, 0x01, 0x02, 0x08, 0x00, 0xA2, 0x4A, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x06, 0x07, 0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00};
 
+#endif
 
  void Delay(u32 count)
  {
@@ -105,9 +108,17 @@ int main(void)
 	int Ret = DRV_FAILED;
 	int TimePeriod = 500; /* 默认500毫秒闪烁一下 */
 	
-	FLASH_Unlock();
 	delay_init();	    //延时函数初始化
 	LED_Init();		  	//初始化与LED连接的硬件接口
+	uart_init(115200);	 	//串口uart1, 波特率115200
+	LCD_Init();
+	POINT_COLOR=BLACK;
+	LCD_Clear(WHITE);
+
+	
+
+#if FLASH_DOWNLOAD
+	FLASH_Unlock();
 	FlashProtectCheck();
 
 	/* 禁用FLASH写保护 */
@@ -128,7 +139,23 @@ int main(void)
 		/* 不管写入程序是否成功, 都要往下执行。区别是LED灯闪烁间隔不同 */
 		TimePeriod = 200;
 	}
+#endif
 
+	  
+
+	while(1)
+	{
+      	if(0 != bDisplayUpdate)
+		{
+			//LED1=!LED1;	
+			LCD_ShowString(30,40,210,24,24, &USART_RX_BUF[0]);
+			bDisplayUpdate = 0;
+			USART_RX_STA = 0;
+		}
+		LED0=!LED0;				   		 
+		delay_ms(1000);	
+	}
+#if 0 /* 主线代码临时屏蔽 2026-06-06 */
 	/********************************************************* 
 	 * 失败逻辑如下：
 	 * 不管FLASH写保护检测、擦除、写入是否失败, 程序都往下执行到while循环中，一个LED灯一直闪烁
@@ -152,7 +179,7 @@ int main(void)
 				count++;
 			}
 
-
+#if FLASH_DOWNLOAD
 			if(count == 10)
 			{
 					JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
@@ -163,7 +190,10 @@ int main(void)
 					__set_MSP(*(__IO uint32_t*) ApplicationAddress);
 					Jump_To_Application();
 			}
+#endif
 	}
+
+#endif /* 主线代码临时屏蔽 2026-06-06 */
 }
 
  
