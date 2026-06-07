@@ -114,12 +114,13 @@ int main(void)
 	
 	delay_init();	    //延时函数初始化
 	LED_Init();		  	//初始化与LED连接的硬件接口
+#if DEBUG_UART
 	uart_init(115200);	 	//串口uart1, 波特率115200
+#endif
+#if DEBUG_LCD
 	LCD_Init();
 	POINT_COLOR=BLACK;
 	LCD_Clear(WHITE);
-
-#if DEBUG_LCD
 	bDisplayUpdate = 0;
 #endif
 
@@ -147,11 +148,17 @@ int main(void)
 	}
 #endif
 
-
+	/********************************************************* 
+	 * 失败逻辑如下：
+	 * 不管FLASH写保护检测、擦除、写入是否失败, 程序都往下执行到while循环中，一个LED灯一直闪烁
+	 * 但是闪烁间隔不同：
+	 * 如果是正常执行, 闪烁间隔为500毫秒, 同时跳转后, 变成两个LED灯交替闪烁
+	 * 如果是判断FLASH是否写保护失败, 则一个LED灯闪烁,闪烁间隔1000毫秒
+	 * 如果是FLASH擦除或写入失败，则是一个LED灯闪烁, 闪烁间隔200毫秒
+	**********************************************************/
 	while(1)
 	{
-	
-	#if DEBUG_LCD
+#if DEBUG_LCD
       	if(0 != bDisplayUpdate)
 		{
 			#if DEBUG_UART
@@ -166,49 +173,33 @@ int main(void)
 			USART_RX_STA = 0;
 			bDisplayUpdate = 0;
 		}
-	#endif
-		LED0=!LED0;				   		 
-		delay_ms(1000);	
-	}
-#if 0 /* 主线代码临时屏蔽 2026-06-06 */
-	/********************************************************* 
-	 * 失败逻辑如下：
-	 * 不管FLASH写保护检测、擦除、写入是否失败, 程序都往下执行到while循环中，一个LED灯一直闪烁
-	 * 但是闪烁间隔不同：
-	 * 如果是正常执行, 闪烁间隔为500毫秒, 同时跳转后, 变成两个LED灯交替闪烁
-	 * 如果是判断FLASH是否写保护失败, 则一个LED灯闪烁,闪烁间隔1000毫秒
-	 * 如果是FLASH擦除或写入失败，则是一个LED灯闪烁, 闪烁间隔200毫秒
-	**********************************************************/
-	while(1)
-	{
-			LED0=0;
-			//LED1=1;
-			delay_ms(TimePeriod);
-			LED0=1;
-			//LED1=0;
-			delay_ms(TimePeriod);
-		
-			/* 只有写入成功了, 才定时跳转到APP程序, 如果失败了, 就一直闪烁 */
-			if(500 == TimePeriod)
-			{
-				count++;
-			}
+#endif
+		LED0=0;
+		//LED1=1;
+		delay_ms(TimePeriod);
+		LED0=1;
+		//LED1=0;
+		delay_ms(TimePeriod);
 
 #if FLASH_DOWNLOAD
-			if(count == 10)
-			{
-					JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
+		/* 只有写入成功了, 才定时跳转到APP程序, 如果失败了, 就一直闪烁 */
+		if(500 == TimePeriod)
+		{
+			count++;
+		}
 
-					/* Jump to user application */
-					Jump_To_Application = (pFunction) JumpAddress;
-					/* Initialize user application's Stack Pointer */
-					__set_MSP(*(__IO uint32_t*) ApplicationAddress);
-					Jump_To_Application();
-			}
+		if(count == 10)
+		{
+			JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
+
+			/* Jump to user application */
+			Jump_To_Application = (pFunction) JumpAddress;
+			/* Initialize user application's Stack Pointer */
+			__set_MSP(*(__IO uint32_t*) ApplicationAddress);
+			Jump_To_Application();
+		}
 #endif
 	}
-
-#endif /* 主线代码临时屏蔽 2026-06-06 */
 }
 
  
