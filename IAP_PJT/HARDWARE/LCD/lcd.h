@@ -5,6 +5,9 @@
 #include "config.h"
 #include "common.h"
 
+/* LCD屏一行最多显示的字符数量, width=210, size=24时, 实测得到,
+若修改了size, width, 则需要重新测试 */
+#define MAX_CHAR_LENGTH		18
 
 //LCD重要参数集
 typedef struct  
@@ -99,6 +102,7 @@ void LCD_ShowChar(u16 x,u16 y,u8 num,u8 size,u8 mode);						//显示一个字符
 void LCD_ShowNum(u16 x,u16 y,u32 num,u8 len,u8 size);  						//显示一个数字
 void LCD_ShowxNum(u16 x,u16 y,u32 num,u8 len,u8 size,u8 mode);				//显示 数字
 void LCD_ShowString(u16 x,u16 y,u16 width,u16 height,u8 size,u8 *p);		//显示一个字符串,12/16字体
+void LCD_Printf(u32 Length, u8 *p);											/* 针对调试蓝牙通信单独增加的封装函数, 不普适 */
 
 void LCD_WriteReg(u16 LCD_Reg, u16 LCD_RegValue);
 u16 LCD_ReadReg(u16 LCD_Reg);

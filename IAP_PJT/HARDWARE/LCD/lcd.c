@@ -1,3 +1,4 @@
+#include <string.h>
 #include "lcd.h"
 #include "stdlib.h"
 #include "font.h"
@@ -2828,3 +2829,20 @@ void LCD_ShowString(u16 x,u16 y,u16 width,u16 height,u8 size,u8 *p)
     }  
 }
  
+
+void LCD_Printf(u32 Length, u8 *p)
+{
+	u32 i;
+
+	if(Length > MAX_CHAR_LENGTH)
+	{
+		Length = MAX_CHAR_LENGTH;
+	}
+	else
+	{
+		memset(&p[Length], ' ', MAX_CHAR_LENGTH - Length);
+		p[MAX_CHAR_LENGTH] = '\0';
+	}
+
+	LCD_ShowString(30,40,210,24,24, p);
+}
