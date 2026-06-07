@@ -140,12 +140,18 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		if((USART_RX_STA&0x8000)==0)//接收未完成
 			{
 			if(USART_RX_STA&0x4000)//接收到了0x0d
+			{
+				if(Res!=0x0a)
 				{
-				if(Res!=0x0a)USART_RX_STA=0;//接收错误,重新开始
-				else USART_RX_STA|=0x8000;	//接收完成了 
-				#if DEBUG_UART
-				bDisplayUpdate = 1;
-				#endif
+					USART_RX_STA=0;//接收错误,重新开始
+				}
+				else
+				{
+					USART_RX_STA|=0x8000;	//接收完成了 
+					#if DEBUG_LCD
+					bDisplayUpdate = 1;
+					#endif
+				}
 			}
 			else //还没收到0X0D
 				{	
@@ -158,12 +164,6 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 				}		 
 			}
 		}   
-		#if DEBUG_UART
-		else
-		{
-			USART_RX_BUF[USART_RX_STA&0X3FFF] = '\0';
-		}		 
-		#endif
      } 
 #if SYSTEM_SUPPORT_OS 	//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
 	OSIntExit();  											 
