@@ -108,6 +108,9 @@ int main(void)
 	int count = 0;
 	int Ret = DRV_FAILED;
 	int TimePeriod = 500; /* 默认500毫秒闪烁一下 */
+#if DEBUG_LCD
+	int Length;
+#endif
 	
 	delay_init();	    //延时函数初始化
 	LED_Init();		  	//初始化与LED连接的硬件接口
@@ -144,7 +147,6 @@ int main(void)
 	}
 #endif
 
-	  
 
 	while(1)
 	{
@@ -152,14 +154,15 @@ int main(void)
 	#if DEBUG_LCD
       	if(0 != bDisplayUpdate)
 		{
-			LED1=!LED1;	
-			LCD_ShowString(30,40,210,24,24, &USART_RX_BUF[0]);
-			
 			#if DEBUG_UART
 			printf("Receive:[%s]\r\n", &USART_RX_BUF[0]);
 			#endif
+
+			LED1=!LED1;	
+			LCD_Printf((USART_RX_STA&0x3FFF), &USART_RX_BUF[0]);
 			
-			memset(&USART_RX_BUF[0], 0, (USART_RX_STA&0x3FFF));
+			Length = ((USART_RX_STA&0x3FFF) > MAX_CHAR_LENGTH) ? (USART_RX_STA&0x3FFF) : MAX_CHAR_LENGTH;
+			memset(&USART_RX_BUF[0], 0, Length);
 			USART_RX_STA = 0;
 			bDisplayUpdate = 0;
 		}
