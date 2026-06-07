@@ -1,3 +1,4 @@
+#include <string.h>
 #include "stm32f10x.h"
 #include "delay.h"
 #include "sys.h"
@@ -115,7 +116,9 @@ int main(void)
 	POINT_COLOR=BLACK;
 	LCD_Clear(WHITE);
 
-	
+#if DEBUG_LCD
+	bDisplayUpdate = 0;
+#endif
 
 #if FLASH_DOWNLOAD
 	FLASH_Unlock();
@@ -145,13 +148,22 @@ int main(void)
 
 	while(1)
 	{
+	
+	#if DEBUG_LCD
       	if(0 != bDisplayUpdate)
 		{
-			//LED1=!LED1;	
+			LED1=!LED1;	
 			LCD_ShowString(30,40,210,24,24, &USART_RX_BUF[0]);
-			bDisplayUpdate = 0;
+			
+			#if DEBUG_UART
+			printf("Receive:[%s]\r\n", &USART_RX_BUF[0]);
+			#endif
+			
+			memset(&USART_RX_BUF[0], 0, (USART_RX_STA&0x3FFF));
 			USART_RX_STA = 0;
+			bDisplayUpdate = 0;
 		}
+	#endif
 		LED0=!LED0;				   		 
 		delay_ms(1000);	
 	}

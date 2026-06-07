@@ -2,8 +2,9 @@
 #include "stm32f10x_flash.h"
 
 
-
-int bDisplayUpdate = 0;
+#if DEBUG_LCD
+int bDisplayUpdate;
+#endif
 __IO uint32_t FlashProtection = 0;
 static uint32_t NbrOfPage = 0;
 FLASH_Status FLASHStatus = FLASH_COMPLETE;
